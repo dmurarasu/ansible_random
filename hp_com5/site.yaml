@@ -1,0 +1,56 @@
+---
+
+- name: Get details from switch
+  hosts: access
+  connection: network_cli
+  tasks:
+    - cli_command:
+        command: display arp | i {{ item }}
+        prompt:
+          - ---- More ----
+        answer:
+           - '               '
+      register: output
+      loop: "{{ my_ips }}"
+      when:
+        - (my_ips | default([]) | length ) > 0
+
+
+    - name: create nice html report per device
+      template:
+        src: report_html.j2
+        dest: "reports_html/{{inventory_hostname}}_report.html"
+      ignore_errors: True
+      when:
+        - (my_ips | default([]) | length ) > 0
+
+    - name: add all html reports in one
+      assemble:
+        src: reports_html
+        dest: report.html
+        delimiter: '#######################################################################################################'
+      run_once: True
+
+    - name: create nice report per device
+      template:
+        src: report.j2
+        dest: "reports/{{inventory_hostname}}_report"
+      ignore_errors: True
+      when:
+        - (my_ips | default([]) | length ) > 0
+
+    - name: add all reports in one
+      assemble:
+        src: reports
+        dest: report
+      run_once: True
+
+#    - debug: var=output
+
+#    - name: show output of command
+#      debug: msg="{{item.stdout_lines[2]}}"
+#      ignore_errors: True
+#      loop: "{{ output.results }}"
+#      when: >
+#        '"10." in {{item.stdout}}' and
+#        my_ips is defined

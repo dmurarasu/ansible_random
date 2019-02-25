@@ -1,0 +1,41 @@
+<html>
+
+<body>
+
+  <h1>Device {{inventory_hostname}} ARP entires</h1>
+
+  <table>
+
+<tr><th>IP address</th><th>MAC</th><th>VLAN</th><th>Interface</th></tr> {{"\n"}}
+
+{%- set mylist = [] -%}
+{%- for k,v in output.iteritems() -%}
+  {%- if k == "results" -%}
+
+    {%- for ip in v -%}
+      {%- if ip.stdout_lines|length > 2 -%}
+        {%- set res = ip.stdout_lines[2].split() -%}
+<tr><th>{{res[0]}}</th><th>{{res[1]}}</th><th>{{res[2]}}</th><th>{{res[3]}}</th><br /> {{"\n"}}
+      {%- else -%}
+{{ mylist.append( ip.item ) }}
+
+      {%- endif -%}
+
+    {%- endfor -%}
+
+  {%endif%}
+{% endfor %}
+
+  </table>
+
+</body>
+
+<br />
+
+{% if mylist %}
+
+No ARP entry for: <br />
+  {% for e in mylist %}
+{{e}} <br />
+  {% endfor %}
+{% endif %}

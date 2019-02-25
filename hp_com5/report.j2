@@ -1,0 +1,28 @@
+################## Device {{inventory_hostname}} ARP entires ################################################{{"\n"}}
+{%- set mylist = [] -%}
+{%- for k,v in output.iteritems() %}
+  {%- if k == "results" -%}
+IP		MAC		VLAN	INTERFACE {{"\n"}}
+    {%- for ip in v -%}
+      {%- if ip.stdout_lines|length > 2 -%}
+        {%- set res = ip.stdout_lines[2].split() -%}
+{{res[0]}}	{{res[1]}}	{{res[2]}}	{{res[3]}} {{"\n"}}
+
+      {%- else -%}
+{{ mylist.append( ip.item ) }}
+
+      {%- endif -%}
+
+    {%- endfor -%}
+
+  {%endif%}
+{% endfor %}
+
+{% if mylist %}
+
+No ARP entry for: {{"\n"}}
+  {%- for e in mylist -%}
+{{e}} {{"\n"}}
+  {%- endfor %}
+{% endif %} {{"\n"}}
+###############################################################################################################
